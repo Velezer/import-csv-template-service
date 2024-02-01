@@ -1,0 +1,44 @@
+version: '3'
+
+services:
+  
+  postgres:
+    image: postgres:latest
+    environment:
+      POSTGRES_HOSTNAME: postgres
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    ports:
+      - "5432:5432"
+    networks:
+      - icts-network
+
+  quarkus-app:
+    build:
+        context: ./
+        dockerfile: ./src/main/docker/Dockerfile.jvm
+    image: quarkus-app:latest
+    depends_on:
+      - postgres
+    ports:
+      - "8080:8080"
+    environment:
+      - SPRING_DATASOURCE_URL=jdbc:postgresql://postgres:5432/postgres
+      - SPRING_DATASOURCE_USERNAME=postgres
+      - SPRING_DATASOURCE_PASSWORD=postgres
+      - SPRING_JPA_HIBERNATE_DDL_AUTO=update
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://postgres:5432/postgres
+      - QUARKUS_DATASOURCE_JDBC_DRIVER=org.postgresql.Driver
+      - QUARKUS_DATASOURCE_USERNAME=postgres
+      - QUARKUS_DATASOURCE_PASSWORD=postgres
+      - QUARKUS_DATASOURCE_JDBC_ACQUISITION_TIMEOUT=30
+      - QUARKUS_HIBERNATE_ORM_DATABASE_DEFAULT_SCHEMA=template_schema
+      - QUARKUS_HIBERNATE_ORM_DATABASE_GENERATION=update
+      - QUARKUS_HIBERNATE_ORM_JDBC_STATEMENT-BATCH-SIZE=20
+    networks:
+      - icts-network
+
+networks:
+  icts-network:
+    driver: bridge
