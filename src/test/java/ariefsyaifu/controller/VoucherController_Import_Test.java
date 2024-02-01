@@ -51,6 +51,23 @@ class VoucherController_Import_Test {
         Assertions.assertEquals(BigDecimal.valueOf(1000).setScale(2), v.amount);
         Assertions.assertEquals("prefixCode0", v.prefixCode);
     }
+    @Test
+    void testImportCsv_InsertMany() {
+        Assertions.assertEquals(0, Voucher.count());
+
+        Response r = RestAssured.given()
+                .multiPart("file", new File("./src/test/resources/voucher-template-insert-many.csv"))
+                .multiPart("delimiter", ",")
+                .when()
+                .post("/v1/voucher")
+                .andReturn();
+        Assertions.assertEquals(200, r.getStatusCode());
+
+        JsonArray ja = new JsonArray(r.asString());
+        Assertions.assertEquals(0, ja.size());
+
+        Assertions.assertEquals(10, Voucher.count());
+    }
 
     @Test
     void testImportCsv_InsertOne_WithoutSendingDelimiter() {

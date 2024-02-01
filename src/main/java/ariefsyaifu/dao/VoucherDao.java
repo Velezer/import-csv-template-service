@@ -35,6 +35,7 @@ public class VoucherDao {
                 String name = contents[i++];
                 String amount = contents[i++];
                 String prefixCode = contents[i++];
+                // this isPresent checking can cause code to be slow
                 boolean isPresent = Voucher.find("prefixCode = ?1", prefixCode).firstResultOptional().isPresent();
                 if (isPresent) {
                     r.add(FailedImportDto.valueOf(prefixCode, "prefixCode already exists"));
