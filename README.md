@@ -1,11 +1,8 @@
 # import-csv-template-service
 
 ## Running the application
-You can run the application simply by run this command first to build the .jar:
-```shell script
-mvn package
-```
-and run docker compose (by default use the port 8080 and 5432)
+
+run docker compose (by default use the port 8080 and 5432)
 ```shell script
 docker-compose up
 ```
