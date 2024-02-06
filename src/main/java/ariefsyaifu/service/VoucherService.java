@@ -1,8 +1,14 @@
 package ariefsyaifu.service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.OutputStreamWriter;
 import java.util.List;
+import java.util.stream.Stream;
+
+import org.jboss.resteasy.reactive.server.StreamingOutputStream;
+import org.jboss.resteasy.reactive.server.providers.serialisers.StreamingOutputMessageBodyWriter;
 
 import ariefsyaifu.dao.VoucherDao;
 import ariefsyaifu.dto.voucher.FailedImportDto;
@@ -28,6 +34,18 @@ public class VoucherService {
     public List<VoucherDto> getVouchers() {
         List<Voucher> vouchers = voucherDao.getVouchers();
         return vouchers.stream().map(VoucherDto::valueOf).toList();
+    }
+
+    public StreamingOutputStream export() throws IOException {
+        List<Voucher> vouchers = Voucher.findAll().list();
+        try (StreamingOutputStream out = new StreamingOutputStream();
+                OutputStreamWriter writer = new OutputStreamWriter(out);) {
+            writer.write("id,name,amount,prefixCode\n");
+            for (Voucher v : vouchers) {
+                writer.write(String.format("%s,%s,%s,%s\n", v.id, v.name, v.amount, v.prefixCode));
+            }
+            return out;
+        }
     }
 
 }

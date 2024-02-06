@@ -28,6 +28,7 @@ import jakarta.ws.rs.GET;
 import jakarta.ws.rs.POST;
 import jakarta.ws.rs.Path;
 import jakarta.ws.rs.Produces;
+import jakarta.ws.rs.core.HttpHeaders;
 import jakarta.ws.rs.core.MediaType;
 import jakarta.ws.rs.core.Response;
 
@@ -53,11 +54,27 @@ public class VoucherController {
         return Response.ok(new JsonArray(voucherService.getVouchers())).build();
     }
 
+    @GET
+    @Path("/export")
+    @Produces(MediaType.APPLICATION_OCTET_STREAM)
+    @Operation(description = "Export Vouchers")
+    @APIResponses(value = {
+            @APIResponse(responseCode = "200", description = "OK", content = @Content(mediaType = MediaType.APPLICATION_OCTET_STREAM)),
+            @APIResponse(responseCode = "400", description = "BAD REQUEST", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ErrorOas.class))),
+            @APIResponse(responseCode = "500", description = "INTERNAL SERVER ERROR", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ErrorOas.class)))
+    })
+    public Response export() throws IOException {
+        return Response.ok(voucherService.export())
+                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=exported-vouchers.csv")
+                .build();
+    }
+
     @POST
+    @Path("/import")
     @Operation(summary = "Import Voucher")
     @Consumes(MediaType.MULTIPART_FORM_DATA)
     @APIResponses(value = {
-            @APIResponse(responseCode = "204", description = "NO CONTENT"),
+            @APIResponse(responseCode = "200", description = "OK", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = FailedImportDto[].class))),
             @APIResponse(responseCode = "400", description = "BAD REQUEST", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ErrorOas.class))),
             @APIResponse(responseCode = "500", description = "INTERNAL SERVER ERROR", content = @Content(mediaType = MediaType.APPLICATION_JSON, schema = @Schema(implementation = ErrorOas.class)))
     })
