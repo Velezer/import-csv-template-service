@@ -15,9 +15,7 @@ public class HttpExceptionHandler implements ExceptionMapper<HttpException> {
 
     @Override
     public Response toResponse(HttpException ex) {
-        if (ex.getStatusCode() == 500) {
-            logger.error(ex.getMessage(), ex);
-        }
+        logger.error("HttpExceptionHandler", ex);
         return Response.status(ex.getStatusCode())
                 .entity(new JsonObject().put("message", ex.getPayload()))
                 .build();

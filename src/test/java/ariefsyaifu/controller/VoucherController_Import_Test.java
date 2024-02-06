@@ -11,6 +11,7 @@ import org.junit.jupiter.api.Test;
 import ariefsyaifu.model.Voucher;
 import io.quarkus.test.junit.QuarkusTest;
 import io.restassured.RestAssured;
+import io.restassured.http.ContentType;
 import io.restassured.response.Response;
 import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
@@ -38,7 +39,7 @@ class VoucherController_Import_Test {
                 .multiPart("file", new File("./src/test/resources/voucher-template-insert-one.csv"))
                 .multiPart("delimiter", ",")
                 .when()
-                .post("/v1/voucher")
+                .post("/api/v1/voucher/import")
                 .andReturn();
         Assertions.assertEquals(200, r.getStatusCode());
 
@@ -51,6 +52,7 @@ class VoucherController_Import_Test {
         Assertions.assertEquals(BigDecimal.valueOf(1000).setScale(2), v.amount);
         Assertions.assertEquals("prefixCode0", v.prefixCode);
     }
+
     @Test
     void testImportCsv_InsertMany() {
         Assertions.assertEquals(0, Voucher.count());
@@ -59,7 +61,7 @@ class VoucherController_Import_Test {
                 .multiPart("file", new File("./src/test/resources/voucher-template-insert-many.csv"))
                 .multiPart("delimiter", ",")
                 .when()
-                .post("/v1/voucher")
+                .post("/api/v1/voucher/import")
                 .andReturn();
         Assertions.assertEquals(200, r.getStatusCode());
 
@@ -76,13 +78,14 @@ class VoucherController_Import_Test {
         Response r = RestAssured.given()
                 .multiPart("file", new File("./src/test/resources/voucher-template-insert-one.csv"))
                 .when()
-                .post("/v1/voucher")
+                .post("/api/v1/voucher/import")
                 .andReturn();
         Assertions.assertEquals(400, r.getStatusCode());
 
         JsonObject jo = new JsonObject(r.asString());
         Assertions.assertEquals("delimiter required", jo.getString("message"));
     }
+
     @Test
     void testImportCsv_InsertOne_WithoutSendingFile() {
         Assertions.assertEquals(0, Voucher.count());
@@ -90,7 +93,7 @@ class VoucherController_Import_Test {
         Response r = RestAssured.given()
                 .multiPart("delimiter", ",")
                 .when()
-                .post("/v1/voucher")
+                .post("/api/v1/voucher/import")
                 .andReturn();
         Assertions.assertEquals(400, r.getStatusCode());
 
@@ -106,7 +109,7 @@ class VoucherController_Import_Test {
                 .multiPart("file", new File("./src/test/resources/voucher-template-insert-one-delimiter-is-;.csv"))
                 .multiPart("delimiter", ";")
                 .when()
-                .post("/v1/voucher")
+                .post("/api/v1/voucher/import")
                 .andReturn();
         Assertions.assertEquals(200, r.getStatusCode());
 
@@ -128,14 +131,16 @@ class VoucherController_Import_Test {
                 .multiPart("file", new File("./src/test/resources/voucher-template-insert-one-with-duplicate.csv"))
                 .multiPart("delimiter", ",")
                 .when()
-                .post("/v1/voucher")
+                .post("/api/v1/voucher/import")
                 .andReturn();
         Assertions.assertEquals(200, r.getStatusCode());
 
         JsonArray ja = new JsonArray(r.asString());
         Assertions.assertEquals(1, ja.size());
-        Assertions.assertEquals("prefixCode0", ja.getJsonObject(0).getString("prefixCode"));
-        Assertions.assertEquals("prefixCode already exists", ja.getJsonObject(0).getString("reason"));
+        Assertions.assertEquals("prefixCode0",
+                ja.getJsonObject(0).getString("prefixCode"));
+        Assertions.assertEquals("prefixCode already exists",
+                ja.getJsonObject(0).getString("reason"));
 
         Assertions.assertEquals(1, Voucher.count());
         Voucher v = Voucher.findAll().firstResult();
